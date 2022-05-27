@@ -28,27 +28,31 @@ IFS=',' read -ra DBS <<< "$PG_DATABASES"
 # Delete old files
 echo " * Backup in progress.,.";
 
+DIRECTORY_NAME="DATABASE_BACKUP_$NOW"
+
+mkdir -p /tmp/"$DIRECTORY_NAME"/
+
 # Loop thru databases
 for db in "${DBS[@]}"; do
-    FILENAME="$NOW"_"$db"
-
 
     echo "   -> backing up $db..."
 
     # Dump database
-    pg_dump -Fc -h $PG_HOST -U $PG_USER -p $PG_PORT $db > /tmp/"$FILENAME".dump
+    pg_dump -h $PG_HOST -U $PG_USER -p $PG_PORT $db > /tmp/"$DIRECTORY_NAME"/$db.sql
+
+    tar -C /tmp/ -czf /tmp/"$DIRECTORY_NAME".tar.gz  /tmp/"$DIRECTORY_NAME"/
 
     # Copy to S3
-    aws s3 cp /tmp/"$FILENAME".dump s3://$S3_PATH/"$FILENAME".dump --storage-class STANDARD_IA
+    aws s3 cp /tmp/"$DIRECTORY_NAME".tar.gz s3://$S3_PATH/"$DIRECTORY_NAME".tar.gz --storage-class STANDARD_IA
 
     # Delete local file
-    rm /tmp/"$FILENAME".dump
+    rm -rf /tmp/"$DIRECTORY_NAME".tar.gz
 
     # Log
     echo "      ...database $db has been backed up"
 done
 
-# Delere old files
+# Delete old files
 echo " * Deleting old backups...";
 
 # Loop thru files

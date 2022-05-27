@@ -32,6 +32,11 @@ Automatically dump and archive PostgreSQL backups to Amazon S3.
 
 ## Restore a backup
 
+1. Extract the contents of the archive and change directory to the backup directory
+2. Set the environment variables $DB_USER_NAME, $DB_NAME, $DB_HOST and $DB_PORT by your database connection values and execute
+
 ```bash
-pg_restore -d DB_NAME -Fc --clean PATH_TO_YOUR_DB_DUMP_FILE
+psql -U $DB_USER_NAME -d $DB_NAME -W -h $DB_HOST -p $DB_PORT < YOUR_DATABASE_FILE_NAME.sql
 ```
+
+ You can also replace the variables by actual values and execute
